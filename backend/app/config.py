@@ -1,5 +1,4 @@
 import os
-from pydantic_settings import BaseSettings if False else object
 
 class Settings:
     PROJECT_NAME: str = "Smart Waste Collection Route Optimization API"
