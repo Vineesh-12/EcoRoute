@@ -1,0 +1,30 @@
+{
+  "id": "urban_core",
+  "name": "Urban Commercial Core (12 Points, 3 Trucks)",
+  "description": "Synthetic waste-demand scenario using realistic commercial locations in Central Chennai.",
+  "depot": {
+    "name": "Central Municipal Depot",
+    "latitude": 13.0827,
+    "longitude": 80.2707,
+    "address": "Poonamallee High Rd, Central Chennai"
+  },
+  "collection_points": [
+    {"id": 1, "name": "Koyambedu Wholesale Market", "latitude": 13.0694, "longitude": 80.1948, "waste_demand_kg": 160.0, "service_time_min": 8.0},
+    {"id": 2, "name": "Egmore Railway Station Yard", "latitude": 13.0784, "longitude": 80.2608, "waste_demand_kg": 90.0, "service_time_min": 5.0},
+    {"id": 3, "name": "T. Nagar Commercial Complex", "latitude": 13.0418, "longitude": 80.2341, "waste_demand_kg": 140.0, "service_time_min": 7.0},
+    {"id": 4, "name": "Alwarpet Community Bins", "latitude": 13.0336, "longitude": 80.2520, "waste_demand_kg": 75.0, "service_time_min": 4.0},
+    {"id": 5, "name": "Mylapore Temple Zone", "latitude": 13.0339, "longitude": 80.2687, "waste_demand_kg": 110.0, "service_time_min": 6.0},
+    {"id": 6, "name": "Royapettah Government Hospital", "latitude": 13.0558, "longitude": 80.2612, "waste_demand_kg": 85.0, "service_time_min": 5.0},
+    {"id": 7, "name": "Triplicane Residential Ward", "latitude": 13.0588, "longitude": 80.2755, "waste_demand_kg": 95.0, "service_time_min": 5.0},
+    {"id": 8, "name": "Nungambakkam High Road", "latitude": 13.0604, "longitude": 80.2415, "waste_demand_kg": 120.0, "service_time_min": 6.0},
+    {"id": 9, "name": "Chetpet Eco-Park Enclave", "latitude": 13.0719, "longitude": 80.2423, "waste_demand_kg": 60.0, "service_time_min": 4.0},
+    {"id": 10, "name": "Kilpauk Medical College Area", "latitude": 13.0792, "longitude": 80.2435, "waste_demand_kg": 80.0, "service_time_min": 4.0},
+    {"id": 11, "name": "Anna Nagar West Depot Point", "latitude": 13.0850, "longitude": 80.2101, "waste_demand_kg": 130.0, "service_time_min": 6.0},
+    {"id": 12, "name": "Shenoy Nagar Metro Junction", "latitude": 13.0779, "longitude": 80.2268, "waste_demand_kg": 70.0, "service_time_min": 4.0}
+  ],
+  "vehicles": [
+    {"id": 1, "name": "EcoTruck 1", "capacity_kg": 500.0, "speed_kmh": 35.0},
+    {"id": 2, "name": "EcoTruck 2", "capacity_kg": 500.0, "speed_kmh": 35.0},
+    {"id": 3, "name": "EcoTruck 3", "capacity_kg": 500.0, "speed_kmh": 35.0}
+  ]
+}

@@ -6,7 +6,6 @@ from app.schemas import (
     DepotBase,
     CollectionPointBase,
     VehicleBase,
-    Weights,
     OptimizationResult,
     SavingsMetric,
     OptimizationComparison
@@ -30,23 +29,19 @@ def run_cvrp_comparison(
     
     Computes Before-vs-After savings relative to the Nearest Neighbor baseline.
     """
-    # 1. Compute distance & travel time matrices
+    # 1. Compute real road distance & travel time matrices via OSRM
     dist_matrix, time_matrix, all_locations = compute_matrices(
         depot=depot,
         points=points,
-        speed_kmh=35.0,
-        traffic_factor=1.0
+        speed_kmh=35.0
     )
-
-    weights = Weights(distance=1.0, time=0.0, vehicles=0.0)
 
     # 2. Run Nearest Neighbor (Baseline)
     nn_result = solve_nearest_neighbor(
         all_locations=all_locations,
         distance_matrix=dist_matrix,
         time_matrix=time_matrix,
-        vehicles=vehicles,
-        weights=weights
+        vehicles=vehicles
     )
 
     # 3. Run Genetic Algorithm (Metaheuristic)
@@ -55,7 +50,6 @@ def run_cvrp_comparison(
         distance_matrix=dist_matrix,
         time_matrix=time_matrix,
         vehicles=vehicles,
-        weights=weights,
         population_size=60,
         generations=100
     )

@@ -1,15 +1,14 @@
 import time
 from typing import List, Dict
 import numpy as np
-from app.schemas import VehicleBase, OptimizationResult, VehicleRoute, RouteStep, Weights
-from app.routing.distance_matrix import generate_interpolated_path
+from app.schemas import VehicleBase, OptimizationResult, VehicleRoute, RouteStep
+from app.routing.distance_matrix import fetch_road_route_geometry
 
 def solve_nearest_neighbor(
     all_locations: List[Dict],
     distance_matrix: np.ndarray,
     time_matrix: np.ndarray,
-    vehicles: List[VehicleBase],
-    weights: Weights
+    vehicles: List[VehicleBase]
 ) -> OptimizationResult:
     start_time = time.time()
     n_points = len(all_locations)
@@ -49,7 +48,6 @@ def solve_nearest_neighbor(
         path_coords.append([depot["latitude"], depot["longitude"]])
 
         while unvisited:
-            # Find nearest unvisited node that satisfies capacity
             best_candidate = None
             best_distance = float("inf")
 
@@ -61,11 +59,9 @@ def solve_nearest_neighbor(
                         best_distance = d
                         best_candidate = candidate
 
-            # If no candidate fits capacity, vehicle must return to depot
             if best_candidate is None:
                 break
 
-            # Visit best candidate
             unvisited.remove(best_candidate)
             d = distance_matrix[current_node][best_candidate]
             t = time_matrix[current_node][best_candidate] + all_locations[best_candidate]["service_time_min"]
@@ -109,9 +105,8 @@ def solve_nearest_neighbor(
         ))
         path_coords.append([depot["latitude"], depot["longitude"]])
 
-        # If vehicle actually visited at least one customer
         if len(route_steps) > 2:
-            interpolated = generate_interpolated_path(path_coords)
+            real_street_path = fetch_road_route_geometry(path_coords)
             utilization = round((current_load / vehicle.capacity_kg) * 100.0, 1)
 
             routes_output.append(VehicleRoute(
@@ -123,29 +118,19 @@ def solve_nearest_neighbor(
                 total_distance_km=round(route_dist, 2),
                 total_time_min=round(route_time, 1),
                 steps=route_steps,
-                path_coordinates=interpolated
+                path_coordinates=real_street_path
             ))
 
             total_system_distance += route_dist
             total_system_time += route_time
             total_system_waste += current_load
 
-    # If any points remain unvisited because capacity was exceeded
     if unvisited:
         capacity_violations = len(unvisited)
 
     exec_time_ms = round((time.time() - start_time) * 1000.0, 2)
     vehicles_used = len(routes_output)
 
-    # Cost calculation
-    objective_cost = (
-        weights.distance * total_system_distance +
-        weights.time * (total_system_time / 60.0) +
-        weights.vehicles * vehicles_used * 10.0 +
-        (capacity_violations * 500.0)
-    )
-
-    # Environmental metrics (avg 0.85 kg CO2/km, 0.32 L diesel/km for municipal collection trucks)
     co2_kg = round(total_system_distance * 0.85, 2)
     fuel_liters = round(total_system_distance * 0.32, 2)
 
@@ -161,6 +146,6 @@ def solve_nearest_neighbor(
         capacity_violations=capacity_violations,
         estimated_co2_kg=co2_kg,
         estimated_fuel_liters=fuel_liters,
-        objective_cost=round(objective_cost, 2),
+        objective_cost=round(total_system_distance, 2),
         routes=routes_output
     )

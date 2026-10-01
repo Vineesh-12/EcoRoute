@@ -4,7 +4,7 @@ import numpy as np
 from ortools.constraint_solver import pywrapcp, routing_enums_pb2
 
 from app.schemas import VehicleBase, OptimizationResult, VehicleRoute, RouteStep
-from app.routing.distance_matrix import generate_interpolated_path
+from app.routing.distance_matrix import fetch_road_route_geometry
 
 def solve_ortools_cvrp(
     all_locations: List[Dict],
@@ -195,7 +195,7 @@ def solve_ortools_cvrp(
         if len(route_steps) > 2:
             vehicle = vehicles[vehicle_id]
             route_dist_km = round(route_dist_meters / 1000.0, 2)
-            interpolated = generate_interpolated_path(path_coords)
+            real_street_path = fetch_road_route_geometry(path_coords)
             utilization = round((route_load / vehicle.capacity_kg) * 100.0, 1)
 
             routes_output.append(VehicleRoute(
@@ -207,7 +207,7 @@ def solve_ortools_cvrp(
                 total_distance_km=route_dist_km,
                 total_time_min=round(route_time, 1),
                 steps=route_steps,
-                path_coordinates=interpolated
+                path_coordinates=real_street_path
             ))
 
             total_system_dist += route_dist_km

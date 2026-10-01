@@ -2,8 +2,8 @@ import time
 import random
 from typing import List, Dict, Tuple
 import numpy as np
-from app.schemas import VehicleBase, OptimizationResult, VehicleRoute, RouteStep, Weights
-from app.routing.distance_matrix import generate_interpolated_path
+from app.schemas import VehicleBase, OptimizationResult, VehicleRoute, RouteStep
+from app.routing.distance_matrix import fetch_road_route_geometry
 
 def decode_chromosome(
     chromosome: List[int],
@@ -28,21 +28,18 @@ def decode_chromosome(
         demand = all_locations[point_idx]["waste_demand_kg"]
         assigned = False
 
-        # Try current vehicle first
         if current_vehicle_idx < len(vehicles):
             if vehicle_loads[current_vehicle_idx] + demand <= vehicles[current_vehicle_idx].capacity_kg:
                 vehicle_routes[current_vehicle_idx].append(point_idx)
                 vehicle_loads[current_vehicle_idx] += demand
                 assigned = True
             else:
-                # Advance to next vehicle
                 current_vehicle_idx += 1
                 if current_vehicle_idx < len(vehicles):
                     vehicle_routes[current_vehicle_idx].append(point_idx)
                     vehicle_loads[current_vehicle_idx] += demand
                     assigned = True
 
-        # If beyond current, check any other vehicle with remaining capacity
         if not assigned:
             for v_idx in range(len(vehicles)):
                 if vehicle_loads[v_idx] + demand <= vehicles[v_idx].capacity_kg:
@@ -51,10 +48,8 @@ def decode_chromosome(
                     assigned = True
                     break
 
-    # Calculate distance and time
     total_dist = 0.0
     total_time = 0.0
-    unassigned = 0
 
     assigned_set = set()
     for r in vehicle_routes:
@@ -65,13 +60,11 @@ def decode_chromosome(
     for route in vehicle_routes:
         if not route:
             continue
-        # Depot to first
         prev = 0
         for node in route:
             total_dist += distance_matrix[prev][node]
             total_time += time_matrix[prev][node] + all_locations[node]["service_time_min"]
             prev = node
-        # Return to depot
         total_dist += distance_matrix[prev][0]
         total_time += time_matrix[prev][0]
 
@@ -104,12 +97,10 @@ def mutate(chromosome: List[int], mutation_rate: float = 0.25) -> List[int]:
     """Inversion (2-opt style) and Swap mutation."""
     chrom = chromosome[:]
     if random.random() < mutation_rate and len(chrom) > 2:
-        # Inversion mutation
         i, j = sorted(random.sample(range(len(chrom)), 2))
         chrom[i:j + 1] = reversed(chrom[i:j + 1])
 
     if random.random() < mutation_rate and len(chrom) > 1:
-        # Swap mutation
         i, j = random.sample(range(len(chrom)), 2)
         chrom[i], chrom[j] = chrom[j], chrom[i]
 
@@ -120,9 +111,8 @@ def solve_genetic_algorithm(
     distance_matrix: np.ndarray,
     time_matrix: np.ndarray,
     vehicles: List[VehicleBase],
-    weights: Weights,
-    population_size: int = 70,
-    generations: int = 120
+    population_size: int = 60,
+    generations: int = 100
 ) -> OptimizationResult:
     start_time = time.time()
     n_points = len(all_locations)
@@ -147,8 +137,7 @@ def solve_genetic_algorithm(
 
     # Initialize Population
     population: List[List[int]] = []
-    # Seed with a greedy nearest-neighbor order for faster high-quality convergence
-    greedy_seed = customer_indices[:]
+    # Seed with nearest-neighbor greedy tour
     curr = 0
     remaining = set(customer_indices)
     greedy_order = []
@@ -159,7 +148,6 @@ def solve_genetic_algorithm(
         curr = nxt
     population.append(greedy_order)
 
-    # Fill rest with random permutations
     for _ in range(population_size - 1):
         ind = customer_indices[:]
         random.shuffle(ind)
@@ -169,13 +157,8 @@ def solve_genetic_algorithm(
         routes, dist, t_time, unassigned = decode_chromosome(
             chrom, all_locations, distance_matrix, time_matrix, vehicles
         )
-        used_vehicles = sum(1 for r in routes if len(r) > 0)
-        cost = (
-            weights.distance * dist +
-            weights.time * (t_time / 60.0) +
-            weights.vehicles * used_vehicles * 10.0 +
-            (unassigned * 1000.0)  # Heavy penalty for unserviced points
-        )
+        # Cost is strictly total road distance with heavy penalty for unassigned bins
+        cost = dist + (unassigned * 1000.0)
         return cost, dist, t_time, unassigned, routes
 
     best_individual = None
@@ -188,7 +171,6 @@ def solve_genetic_algorithm(
     elite_count = max(2, int(population_size * 0.08))
 
     for gen in range(generations):
-        # Evaluate all
         evaluated = []
         for ind in population:
             cost, dist, t_time, unassigned, routes = evaluate_fitness(ind)
@@ -201,17 +183,13 @@ def solve_genetic_algorithm(
                 best_routes = routes
                 best_individual = ind[:]
 
-        # Sort by fitness (lowest cost is best)
         evaluated.sort(key=lambda x: x[0])
         new_population = [evaluated[i][5][:] for i in range(elite_count)]
 
-        # Tournament selection and reproduction
         while len(new_population) < population_size:
-            # Tournament 1
             t1 = random.sample(evaluated, 3)
             p1 = min(t1, key=lambda x: x[0])[5]
 
-            # Tournament 2
             t2 = random.sample(evaluated, 3)
             p2 = min(t2, key=lambda x: x[0])[5]
 
@@ -222,7 +200,6 @@ def solve_genetic_algorithm(
 
         population = new_population
 
-    # Build final formatted output
     depot = all_locations[0]
     routes_output: List[VehicleRoute] = []
     total_waste = 0.0
@@ -237,7 +214,6 @@ def solve_genetic_algorithm(
         route_steps: List[RouteStep] = []
         path_coords: List[List[float]] = []
 
-        # Start Depot
         route_steps.append(RouteStep(
             point_id=0,
             name=depot["name"],
@@ -279,7 +255,6 @@ def solve_genetic_algorithm(
             path_coords.append([cand_loc["latitude"], cand_loc["longitude"]])
             prev = node
 
-        # Return Depot
         return_dist = distance_matrix[prev][0]
         return_time = time_matrix[prev][0]
         route_dist += return_dist
@@ -298,7 +273,7 @@ def solve_genetic_algorithm(
         ))
         path_coords.append([depot["latitude"], depot["longitude"]])
 
-        interpolated = generate_interpolated_path(path_coords)
+        real_street_path = fetch_road_route_geometry(path_coords)
         utilization = round((current_load / vehicle.capacity_kg) * 100.0, 1)
 
         routes_output.append(VehicleRoute(
@@ -310,7 +285,7 @@ def solve_genetic_algorithm(
             total_distance_km=round(route_dist, 2),
             total_time_min=round(route_time, 1),
             steps=route_steps,
-            path_coordinates=interpolated
+            path_coordinates=real_street_path
         ))
 
     exec_time_ms = round((time.time() - start_time) * 1000.0, 2)
@@ -330,6 +305,6 @@ def solve_genetic_algorithm(
         capacity_violations=best_unassigned,
         estimated_co2_kg=co2_kg,
         estimated_fuel_liters=fuel_liters,
-        objective_cost=round(best_cost, 2),
+        objective_cost=round(best_dist, 2),
         routes=routes_output
     )

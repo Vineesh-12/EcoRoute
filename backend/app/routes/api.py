@@ -1,11 +1,10 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException
 from typing import List, Dict, Any
 
 from app.schemas import (
     OptimizationRequest,
     OptimizationResult,
-    OptimizationComparison,
-    Weights
+    OptimizationComparison
 )
 from app.routing.distance_matrix import compute_matrices
 from app.routing.nearest_neighbor import solve_nearest_neighbor
@@ -13,7 +12,6 @@ from app.routing.genetic_algorithm import solve_genetic_algorithm
 from app.routing.ortools_solver import solve_ortools_cvrp
 from app.routing.benchmarks import run_cvrp_comparison
 from app.scenarios import SCENARIOS
-from app.database import active_db_type
 
 router = APIRouter()
 
@@ -22,7 +20,7 @@ def get_health() -> Dict[str, Any]:
     return {
         "status": "healthy",
         "service": "EcoRoute Optimization Engine",
-        "database": active_db_type,
+        "routing_engine": "OpenStreetMap / OSRM Real Road Network",
         "supported_algorithms": [
             {"id": "nearest_neighbor", "name": "Nearest Neighbor (Baseline Heuristic)"},
             {"id": "genetic_algorithm", "name": "Genetic Algorithm (Metaheuristic)"},
@@ -65,7 +63,6 @@ def optimize_routes(request: OptimizationRequest):
     if not request.vehicles:
         raise HTTPException(status_code=400, detail="At least one vehicle is required.")
 
-    # If 'all', delegate to comparative benchmark
     if request.algorithm.lower() in ("all", "compare"):
         return run_cvrp_comparison(
             depot=request.depot,
@@ -74,21 +71,18 @@ def optimize_routes(request: OptimizationRequest):
             scenario_name="Custom Routing Plan"
         )
 
-    # Compute matrices
     dist_matrix, time_matrix, all_locations = compute_matrices(
         depot=request.depot,
         points=request.collection_points,
-        speed_kmh=35.0,
-        traffic_factor=request.traffic_factor
+        speed_kmh=35.0
     )
 
-    weights = request.weights or Weights(distance=1.0, time=0.0, vehicles=0.0)
     algo = request.algorithm.lower()
 
     if algo == "nearest_neighbor":
-        result = solve_nearest_neighbor(all_locations, dist_matrix, time_matrix, request.vehicles, weights)
+        result = solve_nearest_neighbor(all_locations, dist_matrix, time_matrix, request.vehicles)
     elif algo in ("genetic_algorithm", "ga"):
-        result = solve_genetic_algorithm(all_locations, dist_matrix, time_matrix, request.vehicles, weights)
+        result = solve_genetic_algorithm(all_locations, dist_matrix, time_matrix, request.vehicles)
     elif algo in ("ortools", "or_tools"):
         result = solve_ortools_cvrp(all_locations, dist_matrix, time_matrix, request.vehicles)
     else:
