@@ -80,8 +80,6 @@ export default function App() {
       collection_points: data.collection_points,
       vehicles: vehicles,
       algorithm: 'all',
-      weights: { distance: 1.0, time: 0.0, vehicles: 0.0 },
-      traffic_factor: 1.0,
     };
 
     try {
