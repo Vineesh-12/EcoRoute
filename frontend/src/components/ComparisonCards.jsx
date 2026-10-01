@@ -1,5 +1,5 @@
 import React from 'react';
-import { TrendingDown, Clock, Fuel, ShieldCheck, Zap } from 'lucide-react';
+import { TrendingDown, Clock, Fuel, Leaf, Check } from 'lucide-react';
 
 export default function ComparisonCards({
   comparisonData,
@@ -9,7 +9,6 @@ export default function ComparisonCards({
   if (!comparisonData || !comparisonData.comparison_summary) return null;
 
   const { comparison_summary, savings_vs_baseline, best_algorithm } = comparisonData;
-  const bestResult = comparison_summary[best_algorithm];
   const bestSavings = savings_vs_baseline[best_algorithm] || {
     distance_saved_km: 0,
     distance_saved_pct: 0,
@@ -20,104 +19,112 @@ export default function ComparisonCards({
   };
 
   const algos = [
-    { key: 'nearest_neighbor', label: 'Nearest Neighbor (Baseline)' },
-    { key: 'genetic_algorithm', label: 'Genetic Algorithm (Metaheuristic)' },
-    { key: 'ortools', label: 'Google OR-Tools (Benchmark Solver)' },
+    {
+      key: 'ortools',
+      name: 'Optimized Route Plan (OR-Tools)',
+      desc: 'Industry standard optimization solver',
+      tag: 'Best Result',
+    },
+    {
+      key: 'genetic_algorithm',
+      name: 'Smart Evolutionary Route (Genetic Algorithm)',
+      desc: 'AI-inspired route permutation search',
+      tag: null,
+    },
+    {
+      key: 'nearest_neighbor',
+      name: 'Standard Route (Nearest Neighbor)',
+      desc: 'Unoptimized greedy baseline for reference',
+      tag: 'Baseline',
+    },
   ];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-      {/* Before vs After Impact Cards */}
+      {/* 1. Measurable Savings KPI Cards */}
       <div className="metrics-row">
-        <div className="glass-panel metric-card green">
-          <div className="metric-label">Distance Saved (vs Baseline)</div>
-          <div className="metric-value">
+        <div className="metric-box">
+          <span className="metric-label">Distance Saved</span>
+          <div className="metric-value" style={{ color: 'var(--success)' }}>
             {bestSavings.distance_saved_km > 0
               ? `-${bestSavings.distance_saved_km} km`
-              : 'Baseline'}
+              : '0.0 km'}
           </div>
-          <div className="metric-badge badge-savings">
-            <TrendingDown size={13} />
-            {bestSavings.distance_saved_pct > 0
-              ? `${bestSavings.distance_saved_pct}% Reduction`
-              : 'Reference'}
+          <div className="metric-sub">
+            <TrendingDown size={14} />
+            <span>
+              {bestSavings.distance_saved_pct > 0
+                ? `${bestSavings.distance_saved_pct}% less travel`
+                : 'Reference baseline'}
+            </span>
           </div>
         </div>
 
-        <div className="glass-panel metric-card blue">
-          <div className="metric-label">Travel Time Saved</div>
-          <div className="metric-value">
+        <div className="metric-box">
+          <span className="metric-label">Travel Time Saved</span>
+          <div className="metric-value" style={{ color: 'var(--primary)' }}>
             {bestSavings.time_saved_min > 0
-              ? `-${bestSavings.time_saved_min} min`
-              : 'Baseline'}
+              ? `-${bestSavings.time_saved_min} mins`
+              : '0.0 mins'}
           </div>
-          <div className="metric-badge badge-savings">
-            <Clock size={13} />
-            {bestSavings.time_saved_pct > 0
-              ? `${bestSavings.time_saved_pct}% Faster`
-              : 'Reference'}
+          <div className="metric-sub" style={{ color: 'var(--primary)' }}>
+            <Clock size={14} />
+            <span>
+              {bestSavings.time_saved_pct > 0
+                ? `${bestSavings.time_saved_pct}% faster collection`
+                : 'Reference baseline'}
+            </span>
           </div>
         </div>
 
-        <div className="glass-panel metric-card amber">
-          <div className="metric-label">Fuel Consumption Saved</div>
+        <div className="metric-box">
+          <span className="metric-label">Diesel Fuel Conserved</span>
           <div className="metric-value">
             {bestSavings.fuel_saved_liters > 0
               ? `${bestSavings.fuel_saved_liters} L`
               : '0.0 L'}
           </div>
-          <div
-            className="metric-badge"
-            style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#fbbf24' }}
-          >
-            <Fuel size={13} /> Diesel Saved
+          <div className="metric-sub" style={{ color: 'var(--warning)' }}>
+            <Fuel size={14} />
+            <span>Reduced fuel expense</span>
           </div>
         </div>
 
-        <div className="glass-panel metric-card rose">
-          <div className="metric-label">CO2 Emissions Abated</div>
+        <div className="metric-box">
+          <span className="metric-label">CO2 Emissions Avoided</span>
           <div className="metric-value">
             {bestSavings.co2_saved_kg > 0
               ? `${bestSavings.co2_saved_kg} kg`
               : '0.0 kg'}
           </div>
-          <div
-            className="metric-badge"
-            style={{ background: 'rgba(244, 63, 94, 0.15)', color: '#fb7185' }}
-          >
-            <ShieldCheck size={13} /> Carbon Offset
+          <div className="metric-sub">
+            <Leaf size={14} />
+            <span>Lower carbon footprint</span>
           </div>
         </div>
       </div>
 
-      {/* Head-to-Head Comparison Table */}
-      <div className="glass-panel" style={{ padding: '1.25rem' }}>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '0.9rem',
-          }}
-        >
-          <div className="section-title" style={{ margin: 0 }}>
-            <Zap size={18} color="#10b981" /> Algorithm Performance Comparison
+      {/* 2. Route Comparison Table */}
+      <div className="card">
+        <div className="card-header">
+          <div>
+            <div className="card-title">Route Optimization Comparison</div>
+            <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+              Comparison of route efficiency against traditional unoptimized routing
+            </div>
           </div>
-          <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
-            Click an algorithm row to view its routes on the map
-          </span>
         </div>
 
-        <div className="comparison-table-wrapper">
-          <table className="comparison-table">
+        <div className="data-table-container">
+          <table className="clean-table">
             <thead>
               <tr>
-                <th>Algorithm</th>
-                <th>Distance</th>
-                <th>Travel Time</th>
-                <th>Runtime</th>
-                <th>Vehicles Used</th>
-                <th>Violations</th>
+                <th>Routing Method</th>
+                <th>Total Distance</th>
+                <th>Distance Reduction</th>
+                <th>Estimated Time</th>
+                <th>Trucks Used</th>
+                <th>Feasibility</th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -125,61 +132,91 @@ export default function ComparisonCards({
               {algos.map((item) => {
                 const res = comparison_summary[item.key];
                 if (!res) return null;
-                const isBest = best_algorithm === item.key;
                 const isSelected = activeAlgorithm === item.key;
+                const savings = savings_vs_baseline[item.key];
 
                 return (
                   <tr
                     key={item.key}
+                    className={isSelected ? 'active-row' : ''}
                     onClick={() => onSelectAlgorithm(item.key)}
-                    style={{
-                      cursor: 'pointer',
-                      background: isSelected
-                        ? 'rgba(16, 185, 129, 0.1)'
-                        : 'transparent',
-                    }}
+                    style={{ cursor: 'pointer' }}
                   >
                     <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <strong
-                          style={{
-                            color: isSelected ? '#34d399' : '#f8fafc',
-                          }}
-                        >
-                          {item.label}
-                        </strong>
-                        {isBest && <span className="best-pill">Best Solution</span>}
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <strong style={{ color: 'var(--text-main)' }}>{item.name}</strong>
+                          {item.tag && (
+                            <span
+                              style={{
+                                fontSize: '0.7rem',
+                                fontWeight: 700,
+                                padding: '0.15rem 0.45rem',
+                                borderRadius: 'var(--radius-sm)',
+                                background:
+                                  item.tag === 'Best Result'
+                                    ? 'var(--success-light)'
+                                    : 'var(--bg-subtle)',
+                                color:
+                                  item.tag === 'Best Result'
+                                    ? 'var(--success-text)'
+                                    : 'var(--text-muted)',
+                              }}
+                            >
+                              {item.tag}
+                            </span>
+                          )}
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-light)', marginTop: '2px' }}>
+                          {item.desc}
+                        </div>
                       </div>
                     </td>
+
                     <td>
-                      <span style={{ fontWeight: '700' }}>{res.total_distance_km} km</span>
+                      <strong style={{ fontSize: '0.92rem', color: 'var(--text-main)' }}>
+                        {res.total_distance_km} km
+                      </strong>
                     </td>
-                    <td>{res.total_time_min} mins</td>
+
                     <td>
-                      <span style={{ color: '#94a3b8', fontFamily: 'monospace' }}>
-                        {res.execution_time_ms} ms
-                      </span>
+                      {savings && savings.distance_saved_pct > 0 ? (
+                        <span style={{ color: 'var(--success)', fontWeight: 700 }}>
+                          -{savings.distance_saved_pct}% ({savings.distance_saved_km} km saved)
+                        </span>
+                      ) : (
+                        <span style={{ color: 'var(--text-muted)' }}>Baseline</span>
+                      )}
                     </td>
+
+                    <td>
+                      <span>{res.total_time_min} mins</span>
+                    </td>
+
                     <td>{res.vehicles_used} Trucks</td>
+
                     <td>
                       {res.capacity_violations === 0 ? (
-                        <span style={{ color: '#34d399' }}>0 (Feasible)</span>
+                        <span style={{ color: 'var(--success)', fontWeight: 600, fontSize: '0.8rem' }}>
+                          ✓ All bins collected
+                        </span>
                       ) : (
-                        <span style={{ color: '#f43f5e', fontWeight: 'bold' }}>
-                          {res.capacity_violations} points dropped
+                        <span style={{ color: '#ef4444', fontWeight: 600 }}>
+                          {res.capacity_violations} bins unserved
                         </span>
                       )}
                     </td>
+
                     <td>
                       <button
-                        className={`btn ${isSelected ? 'btn-active-algo' : 'btn-secondary'}`}
-                        style={{ padding: '0.35rem 0.65rem', fontSize: '0.75rem' }}
+                        className={`btn ${isSelected ? 'btn-primary' : 'btn-secondary'}`}
+                        style={{ padding: '0.35rem 0.75rem', fontSize: '0.78rem' }}
                         onClick={(e) => {
                           e.stopPropagation();
                           onSelectAlgorithm(item.key);
                         }}
                       >
-                        {isSelected ? 'Viewing' : 'Inspect'}
+                        {isSelected ? 'Active' : 'View Route'}
                       </button>
                     </td>
                   </tr>
