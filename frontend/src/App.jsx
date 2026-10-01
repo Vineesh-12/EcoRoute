@@ -71,7 +71,6 @@ export default function App() {
       id: i + 1,
       name: `Truck ${i + 1}`,
       capacity_kg: cap,
-      max_distance_km: 120.0,
       speed_kmh: 35.0,
     }));
 

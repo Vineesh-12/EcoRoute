@@ -101,9 +101,9 @@ Measured across all three municipal benchmark scenarios using live OpenStreetMap
 
 | Scenario Scale | Collection Bins | Fleet Configuration | Nearest Neighbor (Baseline) | Genetic Algorithm | Google OR-Tools (Benchmark) | Distance Savings vs. Baseline |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Urban Commercial Core** | 12 | 3 Trucks × 500 kg | 72.56 km | 62.53 km | **61.82 km** | **−14.8% Saved (−10.74 km)** |
-| **Residential Ward** | 25 | 4 Trucks × 500 kg | 117.89 km | 129.89 km | **110.79 km** | **−6.0% Saved (−7.10 km)** |
-| **City District** | 40 | 5 Trucks × 600 kg | 158.15 km | 168.52 km | **131.76 km** | **−16.7% Saved (−26.39 km)** |
+| **Urban Commercial Core** | 12 | 3 Trucks × 500 kg | 72.56 km | 62.31 km | **61.82 km** | **−14.8% Saved (−10.74 km)** |
+| **Residential Ward** | 25 | 4 Trucks × 500 kg | 117.89 km | 131.97 km | **110.79 km** | **−6.0% Saved (−7.10 km)** |
+| **City District** | 40 | 5 Trucks × 600 kg | 158.15 km | 201.18 km | **131.76 km** | **−16.7% Saved (−26.39 km)** |
 
 ---
 
