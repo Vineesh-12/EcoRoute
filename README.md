@@ -4,7 +4,7 @@
 [![React](https://img.shields.io/badge/React_19-20232A?style=flat-square&logo=react&logoColor=61DAFB)](https://react.dev/)
 [![OpenStreetMap](https://img.shields.io/badge/OpenStreetMap-7EBC6F?style=flat-square&logo=openstreetmap&logoColor=white)](https://www.openstreetmap.org/)
 [![OSRM](https://img.shields.io/badge/OSRM-Routing-blue?style=flat-square)](http://project-osrm.org/)
-[![Google OR--Tools](https://img.shields.io/badge/Google_OR--Tools-4285F4?style=flat-square&logo=google&logoColor=white)](https://developers.google.com/optimization)
+[![Google OR‑Tools](https://img.shields.io/badge/Google_OR--Tools-4285F4?style=flat-square&logo=google&logoColor=white)](https://developers.google.com/optimization)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 
 > **EcoRoute** is a CVRP-based municipal waste collection route optimizer that compares a greedy heuristic, Genetic Algorithm, and Google OR-Tools using **real road-network distances obtained through OpenStreetMap and OSRM (Open Source Routing Machine)**.
@@ -13,11 +13,7 @@
 
 ## 📌 1. Problem Statement & Mathematical Formulation
 
-In traditional Municipal Solid Waste Management (MSWM), collection trucks typically traverse uncoordinated or static routes:
-
-$$\text{Depot} \to \text{Point A} \to \text{Point B} \to \text{Point C} \to \text{Point D} \to \text{Depot}$$
-
-This often leads to redundant travel distance, unnecessary fuel consumption, unbalanced truck workloads, and premature payload saturation.
+In traditional Municipal Solid Waste Management (MSWM), collection trucks typically traverse uncoordinated or static routes, leading to redundant travel distance, unnecessary fuel consumption, unbalanced truck workloads, and premature payload saturation.
 
 EcoRoute models municipal garbage collection as a **Capacitated Vehicle Routing Problem (CVRP)**, seeking the sequence of collection points and vehicle assignments that minimizes total road distance while strictly satisfying vehicle payload limits.
 
@@ -27,13 +23,13 @@ $$\min Z = \sum_{k \in V} \sum_{i \in N} \sum_{j \in N} d_{ij} \cdot x_{ijk}$$
 
 **Subject to:**
 
-1. **Single Visit Requirement**: Every collection bin $j \in C$ must be serviced by exactly one vehicle:
+1. **Single Visit Requirement** — Every collection bin $j \in C$ must be serviced by exactly one vehicle:
    $$\sum_{k \in V} \sum_{i \in N} x_{ijk} = 1 \quad \forall j \in C$$
 
-2. **Vehicle Payload Limit**: Total waste collected on route $k$ cannot exceed truck capacity $Q$:
+2. **Vehicle Payload Limit** — Total waste collected on route $k$ cannot exceed truck capacity $Q$:
    $$\sum_{j \in C} q_j \cdot y_{jk} \le Q \quad \forall k \in V$$
 
-3. **Flow Conservation**: Every truck originates and concludes its journey at the central municipal depot (node 0):
+3. **Flow Conservation** — Every truck originates and concludes its journey at the central municipal depot (node 0):
    $$\sum_{j \in C} x_{0jk} = \sum_{i \in C} x_{i0k} \le 1 \quad \forall k \in V$$
 
 Where:
@@ -49,12 +45,12 @@ Where:
 
 Unlike simplified models that rely on straight-line Euclidean or Haversine approximations, EcoRoute integrates directly with the **Open Source Routing Machine (OSRM)**:
 
-1. **Road Distance & Travel Time Matrix**:
-   - Queries OSRM Table Service (`/table/v1/driving/`) using exact latitude and longitude coordinates.
-   - Computes realistic urban road travel distances (in meters) and driving durations (in seconds) following actual trafficable streets, one-way systems, and junctions.
-2. **Turn-by-Turn Road Route Geometry**:
-   - Queries OSRM Route Service (`/route/v1/driving/`) for each vehicle tour.
-   - Retrieves full street-level polylines that follow actual street curvature, bridges, and highways.
+| OSRM Service | Usage in EcoRoute | API Endpoint |
+|---|---|---|
+| **Table Service** | Computes the N×N road distance matrix (meters) and driving duration matrix (seconds) for all collection points and the depot in a single query | `/table/v1/driving/{coords}?annotations=distance,duration` |
+| **Route Service** | Fetches the actual street-level GeoJSON polyline for each optimized vehicle route, following real roads, turns, one-way systems, and junctions | `/route/v1/driving/{coords}?overview=full&geometries=geojson` |
+
+The system includes a **Haversine geodesic fallback** (with a ×1.28 urban circuity factor) that activates only when the OSRM server is unreachable, ensuring the application always works.
 
 ---
 
@@ -77,21 +73,25 @@ Under identical road network matrices and capacity constraints, EcoRoute evaluat
 └─────────────────────┴──────────────────────────┴───────────────────────┘
 ```
 
-1. **Nearest Neighbor (Greedy Baseline)**:
-   - Always dispatches the truck to the nearest unvisited bin that fits in the remaining capacity.
-   - Returns to depot when full and mobilizes the next vehicle.
-   - Serves as the unoptimized "Before" benchmark.
+### 3.1 Nearest Neighbor (Greedy Baseline)
+- Always dispatches the truck to the **nearest unvisited bin** that fits within the remaining vehicle capacity.
+- Returns to depot when the truck is full and mobilizes the next vehicle.
+- Serves as the unoptimized **"Before"** benchmark for savings measurement.
 
-2. **Genetic Algorithm (Metaheuristic)**:
-   - **Representation**: Permutation chromosomes representing node visiting orders, decoded using capacity-constrained vehicle partitioning.
-   - **Crossover**: Order Crossover (OX) preserving topological permutations.
-   - **Mutation**: 2-Opt sub-segment inversion combined with random swap mutation.
-   - **Selection & Elitism**: Tournament selection (size 3) with top 8% elite preservation across 100 generations.
+### 3.2 Genetic Algorithm (Metaheuristic)
+- **Representation**: Permutation chromosomes representing node visiting orders, decoded using capacity-constrained vehicle partitioning.
+- **Initialization**: Greedy seed (nearest-neighbor tour) + random population (60 individuals).
+- **Crossover**: Order Crossover (OX) preserving topological permutations.
+- **Mutation**: 2-Opt sub-segment inversion combined with random swap mutation (25% rate).
+- **Selection & Elitism**: Tournament selection (size 3) with top 8% elite preservation across 100 generations.
+- **Fitness**: Total road distance with heavy penalty (×1000) for unassigned bins.
 
-3. **Google OR-Tools (Optimization Benchmark Solver)**:
-   - Formulated via `RoutingIndexManager` and `RoutingModel`.
-   - Uses `SetArcCostEvaluatorOfAllVehicles` over real road matrices and registers an additive `Capacity` dimension.
-   - Solved with initial `PATH_CHEAPEST_ARC` followed by `GUIDED_LOCAL_SEARCH` (GLS) metaheuristic refinement.
+### 3.3 Google OR-Tools (Optimization Benchmark Solver)
+- Formulated via `RoutingIndexManager` and `RoutingModel` with the depot at index 0.
+- Uses `SetArcCostEvaluatorOfAllVehicles` over real road distance matrices (converted to integer meters for solver precision).
+- Registers an additive **Capacity dimension** with per-vehicle payload limits.
+- Solved with initial `PATH_CHEAPEST_ARC` followed by `GUIDED_LOCAL_SEARCH` (GLS) metaheuristic refinement (2-second time limit).
+- Allows visit dropping with high penalty (1,000,000) only when fleet capacity is physically insufficient.
 
 ---
 
@@ -101,9 +101,9 @@ Measured across all three municipal benchmark scenarios using live OpenStreetMap
 
 | Scenario Scale | Collection Bins | Fleet Configuration | Nearest Neighbor (Baseline) | Genetic Algorithm | Google OR-Tools (Benchmark) | Distance Savings vs. Baseline |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Urban Commercial Core** | 12 | 3 Trucks $\times 500\text{ kg}$ | $72.56\text{ km}$ | $62.53\text{ km}$ | $\mathbf{61.82\text{ km}}$ | **$-14.8\%$ Saved ($-10.74\text{ km}$)** |
-| **Residential Ward** | 25 | 4 Trucks $\times 500\text{ kg}$ | $117.89\text{ km}$ | $129.89\text{ km}$ | $\mathbf{110.79\text{ km}}$ | **$-6.0\%$ Saved ($-7.10\text{ km}$)** |
-| **City District** | 40 | 5 Trucks $\times 600\text{ kg}$ | $158.15\text{ km}$ | $168.52\text{ km}$ | $\mathbf{131.76\text{ km}}$ | **$-16.7\%$ Saved ($-26.39\text{ km}$)** |
+| **Urban Commercial Core** | 12 | 3 Trucks × 500 kg | 72.56 km | 62.53 km | **61.82 km** | **−14.8% Saved (−10.74 km)** |
+| **Residential Ward** | 25 | 4 Trucks × 500 kg | 117.89 km | 129.89 km | **110.79 km** | **−6.0% Saved (−7.10 km)** |
+| **City District** | 40 | 5 Trucks × 600 kg | 158.15 km | 168.52 km | **131.76 km** | **−16.7% Saved (−26.39 km)** |
 
 ---
 
@@ -123,7 +123,37 @@ All scenarios use **synthetic waste-demand values mapped to realistic geographic
 
 ---
 
-## 💻 6. Quickstart Guide
+## 🏗️ 6. System Architecture
+
+```text
+               React 19 + Vite
+                     │
+            Leaflet + OpenStreetMap
+                     │
+                  FastAPI
+                     │
+          ┌──────────┴──────────┐
+          │                     │
+        OSRM               CVRP Engine
+          │                     │
+   ┌──────┴──────┐       ┌─────┼─────┐
+   │             │       │     │     │
+ Table        Route     NN    GA   OR-Tools
+   │             │
+Distance/    Street-level
+Time Matrix  GeoJSON Polylines
+                     │
+                     ▼
+         Optimized Route Visualization
+```
+
+- **No database** — all scenario data is loaded from JSON files.
+- **No traffic simulation** — distances come directly from OSRM road networks.
+- **No authentication** — the application is a single-purpose optimization tool.
+
+---
+
+## 💻 7. Quickstart Guide
 
 ### Prerequisites
 - Python 3.10+ (Tested on Python 3.13)
@@ -135,7 +165,7 @@ cd backend
 pip install -r requirements.txt
 python -m uvicorn app.main:app --port 8000 --reload
 ```
-> API runs at `http://127.0.0.1:8000`  
+> API runs at `http://127.0.0.1:8000`
 > Interactive Docs: `http://127.0.0.1:8000/docs`
 
 ### 2. Run the React Frontend
@@ -146,50 +176,72 @@ npm run dev
 ```
 > Web UI runs at `http://localhost:5173`
 
+### 3. Docker (Optional)
+```bash
+docker compose up --build
+```
+> Backend: `http://localhost:8000` — Frontend: `http://localhost:5173`
+
 ---
 
-## 📂 7. Repository Structure
+## 📂 8. Repository Structure
 
 ```text
 EcoRoute/
 ├── backend/
 │   ├── app/
 │   │   ├── routing/
-│   │   │   ├── distance_matrix.py   # OSRM road distance matrix & street polylines
+│   │   │   ├── distance_matrix.py   # OSRM Table + Route integration
 │   │   │   ├── nearest_neighbor.py  # Baseline greedy CVRP solver
-│   │   │   ├── genetic_algorithm.py # Metaheuristic CVRP solver
-│   │   │   ├── ortools_solver.py    # Google OR-Tools benchmark solver
-│   │   │   └── benchmarks.py        # Comparative savings evaluation engine
+│   │   │   ├── genetic_algorithm.py # Metaheuristic CVRP solver (100 generations)
+│   │   │   ├── ortools_solver.py    # Google OR-Tools benchmark solver (GLS)
+│   │   │   └── benchmarks.py        # Before-vs-After savings comparison engine
 │   │   ├── routes/
-│   │   │   └── api.py               # FastAPI REST routes
-│   │   ├── config.py                # OSRM router endpoint setting
-│   │   ├── schemas.py               # Clean Pydantic schemas
+│   │   │   └── api.py               # FastAPI REST endpoints
+│   │   ├── config.py                # OSRM router endpoint configuration
+│   │   ├── schemas.py               # Pydantic request/response models
 │   │   ├── scenarios.py             # JSON dataset loader
 │   │   └── main.py                  # FastAPI application entrypoint
 │   ├── data/
-│   │   ├── urban_core.json          # 12-point commercial dataset
-│   │   ├── residential_ward.json    # 25-point residential dataset
-│   │   └── city_district.json       # 40-point metropolitan dataset
-│   ├── Dockerfile                   # Pure Python 3.13 image
-│   └── requirements.txt             # Lightweight dependencies
+│   │   ├── urban_core.json          # 12-point commercial scenario
+│   │   ├── residential_ward.json    # 25-point residential scenario
+│   │   └── city_district.json       # 40-point metropolitan scenario
+│   ├── Dockerfile
+│   └── requirements.txt
 ├── frontend/
 │   ├── src/
 │   │   ├── components/
 │   │   │   ├── MapComponent.jsx     # Leaflet map with OSRM street polylines
-│   │   │   ├── SidebarControls.jsx  # Operational controls & truck manifest
-│   │   │   └── ComparisonCards.jsx  # Savings cards & benchmark comparison table
+│   │   │   ├── SidebarControls.jsx  # Fleet configuration & truck route manifest
+│   │   │   └── ComparisonCards.jsx  # KPI savings cards & benchmark comparison table
 │   │   ├── App.jsx                  # Main application orchestrator
 │   │   ├── index.css                # Enterprise design system
 │   │   └── main.jsx                 # React root mount
+│   ├── index.html
+│   ├── nginx.conf
+│   ├── Dockerfile
 │   ├── package.json
 │   └── vite.config.js
-├── docker-compose.yml               # Two-container stack (backend + frontend)
+├── docker-compose.yml
+├── .gitignore
 └── README.md
 ```
 
 ---
 
-## 🎓 Academic Coursework Reference
+## 📡 9. API Reference
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/health` | System health check and supported algorithms |
+| `GET` | `/api/scenarios` | List all available municipal scenarios |
+| `GET` | `/api/scenarios/{id}` | Retrieve full scenario data (depot, points, vehicles) |
+| `POST` | `/api/optimize` | Run a single algorithm (`nearest_neighbor`, `genetic_algorithm`, `ortools`, or `all`) |
+| `POST` | `/api/benchmark` | Run all three algorithms and return comparative savings metrics |
+
+---
+
+## 🎓 10. Academic Coursework Reference
 
 - **Course**: Municipal Solid Waste Management (MSWM) — Open Elective
 - **Domain**: Computer Science and Engineering / Route Optimization & Operations Research

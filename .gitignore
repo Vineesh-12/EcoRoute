@@ -23,7 +23,7 @@ wheels/
 .pytest_cache/
 .coverage
 htmlcov/
-mswm_routing.db
+
 
 # Virtual Environment
 .venv/
