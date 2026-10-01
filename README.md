@@ -11,7 +11,7 @@
 
 ---
 
-## 📌 1. Problem Statement & Motivation
+## 📌 1. Problem Statement & Mathematical Formulation
 
 In traditional Municipal Solid Waste Management (MSWM), collection trucks typically traverse uncoordinated or static routes:
 
@@ -39,7 +39,7 @@ $$\min Z = \sum_{k \in V} \sum_{i \in N} \sum_{j \in N} d_{ij} \cdot x_{ijk}$$
 Where:
 - $V$: Fleet of collection vehicles.
 - $C$: Collection bin locations; $N = C \cup \{0\}$ (depot is index 0).
-- $d_{ij}$: **Real driving road distance** between locations $i$ and $j$ computed via **OpenStreetMap / OSRM**.
+- $d_{ij}$: **Real driving road distance** between locations $i$ and $j$ computed via **OpenStreetMap / OSRM Table Service**.
 - $q_j$: Waste demand at location $j$ in kilograms.
 - $Q$: Truck payload capacity limit in kilograms.
 
@@ -47,14 +47,14 @@ Where:
 
 ## 🗺️ 2. Real Road Network Routing via OpenStreetMap & OSRM
 
-Unlike simplified models that rely on straight-line Euclidean or Haversine approximations multiplied by arbitrary factors, EcoRoute integrates directly with the **Open Source Routing Machine (OSRM)**:
+Unlike simplified models that rely on straight-line Euclidean or Haversine approximations, EcoRoute integrates directly with the **Open Source Routing Machine (OSRM)**:
 
 1. **Road Distance & Travel Time Matrix**:
    - Queries OSRM Table Service (`/table/v1/driving/`) using exact latitude and longitude coordinates.
    - Computes realistic urban road travel distances (in meters) and driving durations (in seconds) following actual trafficable streets, one-way systems, and junctions.
 2. **Turn-by-Turn Road Route Geometry**:
    - Queries OSRM Route Service (`/route/v1/driving/`) for each vehicle tour.
-   - Retrieves full street-level polylines that follow actual street curvature and highways, rather than crossing through buildings or open terrain.
+   - Retrieves full street-level polylines that follow actual street curvature, bridges, and highways.
 
 ---
 
@@ -95,18 +95,15 @@ Under identical road network matrices and capacity constraints, EcoRoute evaluat
 
 ---
 
-## 📊 4. Measured Experimental Comparison
+## 📊 4. Experimental Results Across Problem Scales (OSRM-Measured)
 
-Evaluated on the **Urban Commercial Core** scenario (12 bins, 3 vehicles $\times 500\text{ kg}$ capacity) using real Chennai road distances:
+Measured across all three municipal benchmark scenarios using live OpenStreetMap / OSRM road networks:
 
-| Metric | Nearest Neighbor (Baseline) | Genetic Algorithm | Google OR-Tools | Impact / Savings |
-| :--- | :---: | :---: | :---: | :---: |
-| **Total Road Distance** | $72.56\text{ km}$ | $62.53\text{ km}$ | $\mathbf{61.82\text{ km}}$ | **$-14.8\%$ Distance Saved** |
-| **Total Travel Time** | $148.2\text{ min}$ | $131.0\text{ min}$ | $\mathbf{129.5\text{ min}}$ | **$-18.7\text{ min}$ Faster** |
-| **Fuel Consumption** | $23.2\text{ L}$ | $20.0\text{ L}$ | $\mathbf{19.8\text{ L}}$ | **$3.4\text{ L}$ Diesel Saved** |
-| **Carbon Footprint** | $61.7\text{ kg CO}_2$ | $53.2\text{ kg CO}_2$ | $\mathbf{52.5\text{ kg CO}_2}$ | **$9.2\text{ kg CO}_2$ Abated** |
-| **Computation Runtime** | $\mathbf{0.8\text{ ms}}$ | $164.5\text{ ms}$ | $1850.0\text{ ms}$ | Real-time interactive solving |
-| **Feasibility** | 100% Feasible | 100% Feasible | 100% Feasible | Zero dropped bins |
+| Scenario Scale | Collection Bins | Fleet Configuration | Nearest Neighbor (Baseline) | Genetic Algorithm | Google OR-Tools (Benchmark) | Distance Savings vs. Baseline |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Urban Commercial Core** | 12 | 3 Trucks $\times 500\text{ kg}$ | $72.56\text{ km}$ | $62.53\text{ km}$ | $\mathbf{61.82\text{ km}}$ | **$-14.8\%$ Saved ($-10.74\text{ km}$)** |
+| **Residential Ward** | 25 | 4 Trucks $\times 500\text{ kg}$ | $117.89\text{ km}$ | $129.89\text{ km}$ | $\mathbf{110.79\text{ km}}$ | **$-6.0\%$ Saved ($-7.10\text{ km}$)** |
+| **City District** | 40 | 5 Trucks $\times 600\text{ kg}$ | $158.15\text{ km}$ | $168.52\text{ km}$ | $\mathbf{131.76\text{ km}}$ | **$-16.7\%$ Saved ($-26.39\text{ km}$)** |
 
 ---
 
@@ -162,17 +159,18 @@ EcoRoute/
 │   │   │   ├── nearest_neighbor.py  # Baseline greedy CVRP solver
 │   │   │   ├── genetic_algorithm.py # Metaheuristic CVRP solver
 │   │   │   ├── ortools_solver.py    # Google OR-Tools benchmark solver
-│   │   │   └── benchmarks.py        # Before-vs-After comparative savings engine
+│   │   │   └── benchmarks.py        # Comparative savings evaluation engine
 │   │   ├── routes/
 │   │   │   └── api.py               # FastAPI REST routes
-│   │   ├── config.py                # App configuration (OSRM endpoint)
-│   │   ├── schemas.py               # Pydantic validation schemas
-│   │   ├── scenarios.py             # Scenario loader
+│   │   ├── config.py                # OSRM router endpoint setting
+│   │   ├── schemas.py               # Clean Pydantic schemas
+│   │   ├── scenarios.py             # JSON dataset loader
 │   │   └── main.py                  # FastAPI application entrypoint
 │   ├── data/
-│   │   ├── urban_core.json          # 12-point commercial scenario
-│   │   ├── residential_ward.json    # 25-point residential scenario
-│   │   └── city_district.json       # 40-point district scenario
+│   │   ├── urban_core.json          # 12-point commercial dataset
+│   │   ├── residential_ward.json    # 25-point residential dataset
+│   │   └── city_district.json       # 40-point metropolitan dataset
+│   ├── Dockerfile                   # Pure Python 3.13 image
 │   └── requirements.txt             # Lightweight dependencies
 ├── frontend/
 │   ├── src/
@@ -185,6 +183,7 @@ EcoRoute/
 │   │   └── main.jsx                 # React root mount
 │   ├── package.json
 │   └── vite.config.js
+├── docker-compose.yml               # Two-container stack (backend + frontend)
 └── README.md
 ```
 
