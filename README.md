@@ -320,11 +320,8 @@ curl -X POST "https://ecoroute-1ydb.onrender.com/api/benchmark" \
 
 ---
 
-## 🎓 11. Academic Coursework Reference
+## 📄 License & Author
 
-- **Course:** Municipal Solid Waste Management (MSWM) — Open Elective
-- **Academic Domain:** Computer Science & Operations Research / Environmental Engineering
-- **Repository:** [github.com/Vineesh-12/EcoRoute](https://github.com/Vineesh-12/EcoRoute)
-- **Live Demo:** [ecoroute-1ydb.onrender.com](https://ecoroute-1ydb.onrender.com/)
 - **Author:** Vineesh ([vineeshreddy4@gmail.com](mailto:vineeshreddy4@gmail.com))
-- **License:** [MIT License](LICENSE)
+- **Repository:** [github.com/Vineesh-12/EcoRoute](https://github.com/Vineesh-12/EcoRoute)
+- **License:** This project is licensed under the [MIT License](LICENSE).
