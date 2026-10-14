@@ -38,6 +38,7 @@ yarn-error.log*
 .pnpm-debug.log*
 frontend/dist/
 frontend/dist-ssr/
+backend/static/
 *.local
 
 # Environment variables

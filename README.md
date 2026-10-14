@@ -279,6 +279,8 @@ EcoRoute/
 │       ├── residential_ward.json    # 25-point Chennai residential scenario
 │       └── city_district.json       # 40-point Chennai metropolitan scenario
 └── frontend/
+    ├── public/
+    │   └── favicon.svg              # EcoRoute brand SVG favicon
     ├── Dockerfile                   # Container definition for frontend service
     ├── index.html                   # HTML5 shell
     ├── nginx.conf                   # Nginx reverse proxy config for Docker
