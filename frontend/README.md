@@ -1,16 +1,29 @@
-# React + Vite
+# EcoRoute — Frontend Client
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Interactive mapping interface and benchmark analytics dashboard built with **React 19**, **Vite**, and **Leaflet**.
 
-Currently, two official plugins are available:
+## Overview
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+The frontend client serves as the user-facing operations control panel for EcoRoute. It visualizes collection routes on an interactive OpenStreetMap canvas using real street polylines computed by OSRM and displays real-time optimization KPIs.
 
-## React Compiler
+## Key Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Interactive Leaflet Map (`MapComponent.jsx`)**: Renders collection bins (with demand tooltips), the municipal depot, and color-coded vehicle routes using high-resolution street geometry.
+- **Fleet Controls & Manifest (`SidebarControls.jsx`)**: Allows scenario selection, algorithm selection, and displays individual vehicle payload manifests.
+- **Benchmark Analytics (`ComparisonCards.jsx`)**: Computes and displays distance savings, fuel reduction estimates, and a multi-algorithm comparative table.
 
-## Expanding the Oxlint configuration
+## Development Scripts
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+```bash
+# Install dependencies
+npm install
+
+# Start Vite dev server with Hot Module Replacement
+npm run dev
+
+# Run Oxlint
+npm run lint
+
+# Compile production bundle to dist/
+npm run build
+```
