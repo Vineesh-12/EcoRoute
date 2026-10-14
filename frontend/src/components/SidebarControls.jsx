@@ -150,9 +150,13 @@ export default function SidebarControls({
               padding: '0.65rem 0.85rem',
               borderRadius: 'var(--radius-md)',
               background: isCapacityAdequate ? 'var(--success-light)' : 'var(--warning-light)',
+              border: isCapacityAdequate ? '1px solid var(--success-border)' : '1px solid var(--warning-border)',
               color: isCapacityAdequate ? 'var(--success-text)' : 'var(--warning-text)',
               fontSize: '0.78rem',
               fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
             }}
           >
             {isCapacityAdequate

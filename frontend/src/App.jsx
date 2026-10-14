@@ -141,12 +141,17 @@ export default function App() {
 
         {/* Status & Actions */}
         <div className="header-meta">
+          <div className="header-status-pill">
+            <span className="pulse-dot"></span>
+            <span>OSRM Engine Active</span>
+          </div>
+
           {scenarioData && (
             <div className="header-summary-badge">
               <MapPin size={15} color="var(--primary)" />
               <span>
-                <strong>{scenarioData.collection_points.length} Collection Points</strong> •{' '}
-                {Math.round(totalDemand).toLocaleString()} kg Total Waste
+                <strong>{scenarioData.collection_points.length} Bins</strong> •{' '}
+                {Math.round(totalDemand).toLocaleString()} kg Waste
               </span>
             </div>
           )}
@@ -176,7 +181,7 @@ export default function App() {
 
       {/* Main Container */}
       <main className="layout-container">
-        {/* Left Column: Simple Operational Controls */}
+        {/* Left Column: Operational Controls */}
         <SidebarControls
           scenarios={scenarios}
           selectedScenarioId={selectedScenarioId}
@@ -211,9 +216,13 @@ export default function App() {
               </div>
 
               {activeResult && (
-                <div style={{ fontSize: '0.85rem', color: 'var(--text-main)', fontWeight: 600 }}>
-                  Total Distance: <span style={{ color: 'var(--primary)' }}>{activeResult.total_distance_km} km</span> •{' '}
-                  Travel Time: <span style={{ color: 'var(--primary)' }}>{activeResult.total_time_min} mins</span>
+                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                  <div style={{ fontSize: '0.8rem', background: 'var(--primary-light)', padding: '0.35rem 0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--primary-border)', color: 'var(--primary-text)', fontWeight: 600 }}>
+                    Distance: <strong>{activeResult.total_distance_km} km</strong>
+                  </div>
+                  <div style={{ fontSize: '0.8rem', background: 'var(--bg-subtle)', padding: '0.35rem 0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-default)', color: 'var(--text-main)', fontWeight: 600 }}>
+                    Duration: <strong>{activeResult.total_time_min} mins</strong>
+                  </div>
                 </div>
               )}
             </div>
@@ -235,6 +244,22 @@ export default function App() {
           />
         </div>
       </main>
+
+      {/* Enterprise Footer */}
+      <footer className="app-footer">
+        <div>
+          <strong>EcoRoute</strong> — Municipal Solid Waste Collection Route Optimization Platform
+        </div>
+        <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'center', flexWrap: 'wrap' }}>
+          <span>Routing: OpenStreetMap & OSRM Engine</span>
+          <span>•</span>
+          <span>Optimization: Google OR-Tools & Genetic Algorithm</span>
+          <span>•</span>
+          <a href="https://github.com/Vineesh-12/EcoRoute" target="_blank" rel="noreferrer">
+            GitHub Source
+          </a>
+        </div>
+      </footer>
     </div>
   );
 }

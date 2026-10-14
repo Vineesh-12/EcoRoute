@@ -44,13 +44,18 @@ export default function ComparisonCards({
       {/* 1. Measurable Savings KPI Cards */}
       <div className="metrics-row">
         <div className="metric-box">
-          <span className="metric-label">Distance Saved</span>
+          <div className="metric-header-row">
+            <span className="metric-label">Distance Saved</span>
+            <div className="metric-icon-badge metric-icon-success">
+              <TrendingDown size={16} />
+            </div>
+          </div>
           <div className="metric-value" style={{ color: 'var(--success)' }}>
             {bestSavings.distance_saved_km > 0
               ? `-${bestSavings.distance_saved_km} km`
               : '0.0 km'}
           </div>
-          <div className="metric-sub">
+          <div className="metric-sub" style={{ color: 'var(--success)' }}>
             <TrendingDown size={14} />
             <span>
               {bestSavings.distance_saved_pct > 0
@@ -61,7 +66,12 @@ export default function ComparisonCards({
         </div>
 
         <div className="metric-box">
-          <span className="metric-label">Travel Time Saved</span>
+          <div className="metric-header-row">
+            <span className="metric-label">Travel Time Saved</span>
+            <div className="metric-icon-badge metric-icon-primary">
+              <Clock size={16} />
+            </div>
+          </div>
           <div className="metric-value" style={{ color: 'var(--primary)' }}>
             {bestSavings.time_saved_min > 0
               ? `-${bestSavings.time_saved_min} mins`
@@ -78,26 +88,36 @@ export default function ComparisonCards({
         </div>
 
         <div className="metric-box">
-          <span className="metric-label">Diesel Fuel Conserved</span>
-          <div className="metric-value">
+          <div className="metric-header-row">
+            <span className="metric-label">Diesel Conserved</span>
+            <div className="metric-icon-badge metric-icon-warning">
+              <Fuel size={16} />
+            </div>
+          </div>
+          <div className="metric-value" style={{ color: 'var(--warning-text)' }}>
             {bestSavings.fuel_saved_liters > 0
               ? `${bestSavings.fuel_saved_liters} L`
               : '0.0 L'}
           </div>
-          <div className="metric-sub" style={{ color: 'var(--warning)' }}>
+          <div className="metric-sub" style={{ color: 'var(--warning-text)' }}>
             <Fuel size={14} />
-            <span>Reduced fuel expense</span>
+            <span>Lower operating cost</span>
           </div>
         </div>
 
         <div className="metric-box">
-          <span className="metric-label">CO2 Emissions Avoided</span>
-          <div className="metric-value">
+          <div className="metric-header-row">
+            <span className="metric-label">CO2 Avoided</span>
+            <div className="metric-icon-badge metric-icon-success">
+              <Leaf size={16} />
+            </div>
+          </div>
+          <div className="metric-value" style={{ color: 'var(--success-text)' }}>
             {bestSavings.co2_saved_kg > 0
               ? `${bestSavings.co2_saved_kg} kg`
               : '0.0 kg'}
           </div>
-          <div className="metric-sub">
+          <div className="metric-sub" style={{ color: 'var(--success-text)' }}>
             <Leaf size={14} />
             <span>Lower carbon footprint</span>
           </div>
@@ -149,10 +169,12 @@ export default function ComparisonCards({
                           {item.tag && (
                             <span
                               style={{
-                                fontSize: '0.7rem',
+                                fontSize: '0.68rem',
                                 fontWeight: 700,
-                                padding: '0.15rem 0.45rem',
-                                borderRadius: 'var(--radius-sm)',
+                                padding: '0.15rem 0.5rem',
+                                borderRadius: '9999px',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.03em',
                                 background:
                                   item.tag === 'Best Result'
                                     ? 'var(--success-light)'
@@ -161,6 +183,10 @@ export default function ComparisonCards({
                                   item.tag === 'Best Result'
                                     ? 'var(--success-text)'
                                     : 'var(--text-muted)',
+                                border:
+                                  item.tag === 'Best Result'
+                                    ? '1px solid var(--success-border)'
+                                    : '1px solid var(--border-default)',
                               }}
                             >
                               {item.tag}
@@ -174,35 +200,84 @@ export default function ComparisonCards({
                     </td>
 
                     <td>
-                      <strong style={{ fontSize: '0.92rem', color: 'var(--text-main)' }}>
+                      <strong style={{ fontSize: '0.92rem', color: 'var(--text-main)', fontFeatureSettings: "'tnum'" }}>
                         {res.total_distance_km} km
                       </strong>
                     </td>
 
                     <td>
                       {savings && savings.distance_saved_pct > 0 ? (
-                        <span style={{ color: 'var(--success)', fontWeight: 700 }}>
-                          -{savings.distance_saved_pct}% ({savings.distance_saved_km} km saved)
+                        <span
+                          style={{
+                            color: 'var(--success-text)',
+                            background: 'var(--success-light)',
+                            padding: '0.2rem 0.55rem',
+                            borderRadius: 'var(--radius-sm)',
+                            border: '1px solid var(--success-border)',
+                            fontWeight: 700,
+                            fontSize: '0.78rem',
+                            display: 'inline-block',
+                          }}
+                        >
+                          -{savings.distance_saved_pct}% ({savings.distance_saved_km} km)
                         </span>
                       ) : (
-                        <span style={{ color: 'var(--text-muted)' }}>Baseline</span>
+                        <span
+                          style={{
+                            color: 'var(--text-muted)',
+                            background: 'var(--bg-subtle)',
+                            padding: '0.2rem 0.55rem',
+                            borderRadius: 'var(--radius-sm)',
+                            border: '1px solid var(--border-default)',
+                            fontSize: '0.78rem',
+                            display: 'inline-block',
+                          }}
+                        >
+                          Baseline
+                        </span>
                       )}
                     </td>
 
                     <td>
-                      <span>{res.total_time_min} mins</span>
+                      <span style={{ fontWeight: 500, fontFeatureSettings: "'tnum'" }}>{res.total_time_min} mins</span>
                     </td>
 
-                    <td>{res.vehicles_used} Trucks</td>
+                    <td>
+                      <span style={{ fontWeight: 500 }}>{res.vehicles_used} Trucks</span>
+                    </td>
 
                     <td>
                       {res.capacity_violations === 0 ? (
-                        <span style={{ color: 'var(--success)', fontWeight: 600, fontSize: '0.8rem' }}>
-                          ✓ All bins collected
+                        <span
+                          style={{
+                            color: 'var(--success-text)',
+                            background: 'var(--success-light)',
+                            border: '1px solid var(--success-border)',
+                            padding: '0.2rem 0.55rem',
+                            borderRadius: 'var(--radius-sm)',
+                            fontWeight: 600,
+                            fontSize: '0.76rem',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                          }}
+                        >
+                          <Check size={12} />
+                          <span>All bins serviced</span>
                         </span>
                       ) : (
-                        <span style={{ color: '#ef4444', fontWeight: 600 }}>
-                          {res.capacity_violations} bins unserved
+                        <span
+                          style={{
+                            color: '#b91c1c',
+                            background: '#fef2f2',
+                            border: '1px solid #fecaca',
+                            padding: '0.2rem 0.55rem',
+                            borderRadius: 'var(--radius-sm)',
+                            fontWeight: 600,
+                            fontSize: '0.76rem',
+                          }}
+                        >
+                          {res.capacity_violations} unserviced
                         </span>
                       )}
                     </td>

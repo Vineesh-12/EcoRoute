@@ -108,17 +108,7 @@ export default function MapComponent({
   return (
     <div style={{ position: 'relative' }}>
       {/* Route Filter Ribbon */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '0.65rem 1.25rem',
-          background: '#f8fafc',
-          borderBottom: '1px solid var(--border-default)',
-          fontSize: '0.8rem',
-        }}
-      >
+      <div className="route-filter-ribbon">
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
           <span style={{ color: 'var(--text-muted)', fontWeight: 600 }}>Filter by Vehicle:</span>
           <button
