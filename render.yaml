@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: ecoroute
+    runtime: python
+    buildCommand: "chmod +x build.sh && ./build.sh"
+    startCommand: "cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.13.0"
+      - key: NODE_VERSION
+        value: "22"
+      - key: OSRM_ROUTER_URL
+        value: "https://router.project-osrm.org"
